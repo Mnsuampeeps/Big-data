@@ -1,0 +1,24 @@
+from pyspark.sql import SparkSession
+
+# Create a SparkSession
+spark = SparkSession.builder \
+    .appName("ZipExample") \
+    .getOrCreate()
+
+# Load the datasets into DataFrames
+df1 = spark.read.option("header", "true").csv("intel.csv")
+df2 = spark.read.option("header", "true").csv("import_export.csv")
+
+# Add a row index to each DataFrame
+from pyspark.sql.functions import monotonically_increasing_id
+df1 = df1.withColumn("row_index", monotonically_increasing_id())
+df2 = df2.withColumn("row_index", monotonically_increasing_id())
+
+# Zip the two DataFrames together
+zipped_df = df1.join(df2, "row_index").drop("row_index")
+
+# Show the zipped DataFrame
+zipped_df.show()
+
+# Stop SparkSession
+spark.stop()
